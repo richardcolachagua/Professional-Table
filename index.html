@@ -18,7 +18,7 @@
     />
     <link rel="stylesheet" href="style.css" />
   </head>
-  <body class="dark-mode">
+  <body>
     <!-- Dark Theme Mode -->
     <div class="theme-toggle" id="theme-dash-toggle" hidden>Dark Mode</div>
 
@@ -28,7 +28,7 @@
     </div>
 
     <!-- Loader -->
-    <div class="spinner" id="spinner" hidden>
+    <div class="spinner" id="spinner">
       <i class="fa-solid fa-circle-notch fa-spin"></i>
     </div>
 
@@ -85,8 +85,8 @@
     </table>
 
     <!-- Pagination -->
-    <div class="pagination" hidden>
-      <button type="button" id="prev-btn" title="Previous Page">
+    <div class="pagination">
+      <button type="button" id="prev-btn" title="Previous Page" disabled>
         <i class="fas fa-cheveron-left"></i>
       </button>
       <span id="page-number"> 1 </span>
