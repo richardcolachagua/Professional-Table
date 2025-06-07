@@ -7,8 +7,10 @@ const nextBtn = document.getElementById("next-btn");
 const pageMember = document.getElementById("page-number");
 
 let data = [];
+let sortedData = [];
 let currentPage = 1;
 const rowsPerPage = 10;
+let sortDirection = {};
 
 // Fetch data from API
 async function fetchData() {
@@ -17,8 +19,8 @@ async function fetchData() {
     const response = await fetch("https://randomuser.me/api/?results=50");
     const json = await response.json();
     data = json.results;
-    console.log(data);
-    displayTable(data);
+    sortedData = [...data];
+    displayTable(sortedData);
     updateButtons();
   } catch (error) {
     console.error("Error fetching data", error);
@@ -29,39 +31,101 @@ async function fetchData() {
   }
 }
 
-// Display table data
+// Display table with pagination
 function displayTable(dataToDisplay) {
-  tableBody.innerText = "";
+  tableBody.innerText = ""; // Clear the previous rows
   const start = (currentPage - 1) * rowsPerPage;
   const end = start + rowsPerPage;
-  console.log("start", start, "end", end);
   const paginatedItems = dataToDisplay.slice(start, end);
 
-  dataToDisplay.forEach((user) => {
-    const row = ` <tr>
-          <td data-label="Name">${user.name.first} ${user.name.last}</td>
-          <td data-label="Email">${user.email}</td>
-          <td data-label="Username">${user.login.username}</td>
-          <td data-label="Country">${user.location.country}</td>
-        </tr>`;
+  paginatedItems.forEach((user) => {
+    const row = `<tr>
+      <td data-label="Name">${user.name.first} ${user.name.last}</td>
+      <td data-label="Email">${user.email}</td>
+      <td data-label="Username">${user.login.username}</td>
+      <td data-label="Country">${user.location.country}</td>
+    </tr>`;
     tableBody.insertAdjacentHTML("beforeend", row);
   });
+}
+
+// Sort table by column index
+function sortTable(columnIndex) {
+  // Clear all icons
+  clearSortIcons();
+
+  if (!sortDirection[columnIndex]) {
+    sortDirection[columnIndex] = "asc"; // Default to ascending on first click
+  }
+
+  sortedData = [...data].sort((a, b) => {
+    let valA, valB;
+    switch (columnIndex) {
+      case 0:
+        valA = `${a.name.first} ${a.name.last}`;
+        valB = `${b.name.first} ${b.name.last}`;
+        break;
+      case 1:
+        valA = a.email;
+        valB = b.email;
+        break;
+      case 2:
+        valA = a.login.username;
+        valB = b.login.username;
+        break;
+      case 3:
+        valA = a.location.country;
+        valB = b.location.country;
+        break;
+    }
+
+    // If the direction is descending, we reverse the comparison result
+    if (sortDirection[columnIndex] === "desc") {
+      return valB.localeCompare(valA);
+    } else {
+      return valA.localeCompare(valB);
+    }
+  });
+
+  // Toggle the sort direction for the next click
+  sortDirection[columnIndex] =
+    sortDirection[columnIndex] === "asc" ? "desc" : "asc";
+
+  // Update the sort icon for the current column
+  updateSortIcon(columnIndex, sortDirection[columnIndex]);
+
+  // Display sorted data
+  displayTable(sortedData);
+}
+
+// Clear sort icons for all columns
+function clearSortIcons() {
+  for (let i = 0; i < 4; i++) {
+    const icon = document.getElementById(`icon-${i}`);
+    icon.className = "fas fa-sort";
+  }
+}
+
+// Update the sort icon based on the column and direction
+function updateSortIcon(columnIndex, direction) {
+  const icon = document.getElementById(`icon-${columnIndex}`);
+  icon.className = direction === "asc" ? "fas fa-sort-down" : "fas fa-sort-up";
 }
 
 // Previous Page
 function prevPage() {
   if (currentPage > 1) {
     currentPage--;
-    displayTable(data);
+    displayTable(sortedData);
     updateButtons();
   }
 }
 
 // Next Page
 function nextPage() {
-  if (currentPage * rowsPerPage < data.length) {
+  if (currentPage * rowsPerPage < sortedData.length) {
     currentPage++;
-    displayTable(data);
+    displayTable(sortedData);
     updateButtons();
   }
 }
@@ -70,32 +134,35 @@ function nextPage() {
 function updateButtons() {
   pageNumber.innerText = currentPage;
   prevBtn.disabled = currentPage === 1;
-  nextBtn.disabled = currentPage * rowsPerPage >= data.length;
+  nextBtn.disabled = currentPage * rowsPerPage >= sortedData.length;
 }
 
 // Startup
 fetchData();
 
-// Dark Mode functionality
+// Dark Mode Functionality -------------------------------- //
 const themeToggle = document.getElementById("theme-toggle");
 const body = document.body;
 
-// check if dark mode is preferred or previously chosen
-
+// Check if dark mode is preferred or was previously chosen
 const isDarkMode = localStorage.getItem("dark-mode") === "true";
 
-// set initial mode
+// Set initial mode and update text
 if (isDarkMode) {
   body.classList.add("dark-mode");
   themeToggle.innerText = "Light Mode";
 }
 
-// Toggle dark mode and update text
+// Toggle dark mode and update the text accordingly
 themeToggle.addEventListener("click", () => {
-  body.style.transition = "background-color 0.3s, color 0.3s";
+  body.style.trasition = "background-color 0.3s, color 0.3s";
   if (body.classList.contains("dark-mode")) {
     body.classList.remove("dark-mode");
     themeToggle.innerText = "Dark Mode";
+    localStorage.setItem("dark-mode", "false");
+  } else {
+    body.classList.add("dark-mode");
+    themeToggle.innerText = "Light Mode";
     localStorage.setItem("dark-mode", "true");
   }
 });
