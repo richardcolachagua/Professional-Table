@@ -7,6 +7,8 @@ const nextBtn = document.getElementById("next-btn");
 const pageMember = document.getElementById("page-number");
 
 let data = [];
+let currentPage = 1;
+const rowsPerPage = 10;
 
 // Fetch data from API
 async function fetchData() {
@@ -17,6 +19,7 @@ async function fetchData() {
     data = json.results;
     console.log(data);
     displayTable(data);
+    updateButtons();
   } catch (error) {
     console.error("Error fetching data", error);
   } finally {
@@ -29,6 +32,11 @@ async function fetchData() {
 // Display table data
 function displayTable(dataToDisplay) {
   tableBody.innerText = "";
+  const start = (currentPage - 1) * rowsPerPage;
+  const end = start + rowsPerPage;
+  console.log("start", start, "end", end);
+  const paginatedItems = dataToDisplay.slice(start, end);
+
   dataToDisplay.forEach((user) => {
     const row = ` <tr>
           <td data-label="Name">${user.name.first} ${user.name.last}</td>
@@ -38,6 +46,31 @@ function displayTable(dataToDisplay) {
         </tr>`;
     tableBody.insertAdjacentHTML("beforeend", row);
   });
+}
+
+// Previous Page
+function prevPage() {
+  if (currentPage > 1) {
+    currentPage--;
+    displayTable(data);
+    updateButtons();
+  }
+}
+
+// Next Page
+function nextPage() {
+  if (currentPage * rowsPerPage < data.length) {
+    currentPage++;
+    displayTable(data);
+    updateButtons();
+  }
+}
+
+// Update pagination buttons
+function updateButtons() {
+  pageNumber.innerText = currentPage;
+  prevBtn.disabled = currentPage === 1;
+  nextBtn.disabled = currentPage * rowsPerPage >= data.length;
 }
 
 // Startup
